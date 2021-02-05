@@ -22,9 +22,13 @@ jobs:
   build:
 
     # Run these steps on Ubuntu
-    runs-on: ubuntu-latest
+    runs-on: Ubuntu-20.04
 
     steps:
+
+      - name: Set Environment Variables
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
       #########################################################################################
       # Download and Cache Dependencies

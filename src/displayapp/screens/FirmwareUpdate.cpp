@@ -4,12 +4,15 @@
 #include "../DisplayApp.h"
 
 using namespace Pinetime::Applications::Screens;
-extern lv_font_t jetbrains_mono_extrabold_compressed;
-extern lv_font_t jetbrains_mono_bold_20;
 
+FirmwareUpdate::FirmwareUpdate(Pinetime::Applications::DisplayApp* app, Pinetime::Controllers::Ble& bleController)
+  : Screen(app), bleController {bleController} {
 
-FirmwareUpdate::FirmwareUpdate(Pinetime::Applications::DisplayApp *app, Pinetime::Controllers::Ble& bleController) :
-      Screen(app), bleController{bleController} {
+  lv_obj_t* backgroundLabel = lv_label_create(lv_scr_act(), nullptr);
+  lv_label_set_long_mode(backgroundLabel, LV_LABEL_LONG_CROP);
+  lv_obj_set_size(backgroundLabel, 240, 240);
+  lv_obj_set_pos(backgroundLabel, 0, 0);
+  lv_label_set_text_static(backgroundLabel, "");
 
   titleLabel = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_text(titleLabel, "Firmware update");
@@ -34,21 +37,21 @@ FirmwareUpdate::~FirmwareUpdate() {
 }
 
 bool FirmwareUpdate::Refresh() {
-  switch(bleController.State()) {
+  switch (bleController.State()) {
     default:
     case Pinetime::Controllers::Ble::FirmwareUpdateStates::Idle:
     case Pinetime::Controllers::Ble::FirmwareUpdateStates::Running:
-      if(state != States::Running)
+      if (state != States::Running)
         state = States::Running;
       return DisplayProgression();
     case Pinetime::Controllers::Ble::FirmwareUpdateStates::Validated:
-      if(state != States::Validated) {
+      if (state != States::Validated) {
         UpdateValidated();
         state = States::Validated;
       }
       return running;
     case Pinetime::Controllers::Ble::FirmwareUpdateStates::Error:
-      if(state != States::Error) {
+      if (state != States::Error) {
         UpdateError();
         state = States::Error;
       }
@@ -65,11 +68,6 @@ bool FirmwareUpdate::DisplayProgression() const {
 
   lv_bar_set_value(bar1, pc, LV_ANIM_OFF);
   return running;
-}
-
-bool FirmwareUpdate::OnButtonPushed() {
-  running = false;
-  return true;
 }
 
 void FirmwareUpdate::UpdateValidated() {

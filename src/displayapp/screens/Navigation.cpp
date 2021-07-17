@@ -22,56 +22,145 @@
 
 using namespace Pinetime::Applications::Screens;
 
-extern lv_font_t jetbrains_mono_extrabold_compressed;
-extern lv_font_t jetbrains_mono_bold_20;
+LV_FONT_DECLARE(lv_font_navi_80)
 
-/**
- * Set the pixel array to display by the image
- * This just calls lv_img_set_src but adds type safety
- *
- * @param img pointer to an image object
- * @param data the image array
- */
-inline void lv_img_set_src_arr(lv_obj_t *img, const lv_img_dsc_t *src_img) {
-  lv_img_set_src(img, src_img);
+namespace {
+  constexpr std::array<std::pair<const char*, const char*>, 86> m_iconMap = {{
+    {"arrive-left", "\xEE\xA4\x81"},
+    {"arrive-right", "\xEE\xA4\x82"},
+    {"arrive-straight", "\xEE\xA4\x80"},
+    {"arrive", "\xEE\xA4\x80"},
+    {"close", "\xEE\xA4\x83"},
+    {"continue-left", "\xEE\xA4\x85"},
+    {"continue-right", "\xEE\xA4\x86"},
+    {"continue-slight-left", "\xEE\xA4\x87"},
+    {"continue-slight-right", "\xEE\xA4\x88"},
+    {"continue-straight", "\xEE\xA4\x84"},
+    {"continue-uturn", "\xEE\xA4\x89"},
+    {"continue", "\xEE\xA4\x84"},
+    {"depart-left", "\xEE\xA4\x8B"},
+    {"depart-right", "\xEE\xA4\x8C"},
+    {"depart-straight", "\xEE\xA4\x8A"},
+    {"end-of-road-left", "\xEE\xA4\x8D"},
+    {"end-of-road-right", "\xEE\xA4\x8E"},
+    {"ferry", "\xEE\xA4\x8F"},
+    {"flag", "\xEE\xA4\x90"},
+    {"fork-left", "\xEE\xA4\x92"},
+    {"fork-right", "\xEE\xA4\x93"},
+    {"fork-slight-left", "\xEE\xA4\x94"},
+    {"fork-slight-right", "\xEE\xA4\x95"},
+    {"fork-straight", "\xEE\xA4\x96"},
+    {"invalid", "\xEE\xA4\x84"},
+    {"invalid-left", "\xEE\xA4\x85"},
+    {"invalid-right", "\xEE\xA4\x86"},
+    {"invalid-slight-left", "\xEE\xA4\x87"},
+    {"invalid-slight-right", "\xEE\xA4\x88"},
+    {"invalid-straight", "\xEE\xA4\x84"},
+    {"invalid-uturn", "\xEE\xA4\x89"},
+    {"merge-left", "\xEE\xA4\x97"},
+    {"merge-right", "\xEE\xA4\x98"},
+    {"merge-slight-left", "\xEE\xA4\x99"},
+    {"merge-slight-right", "\xEE\xA4\x9A"},
+    {"merge-straight", "\xEE\xA4\x84"},
+    {"new-name-left", "\xEE\xA4\x85"},
+    {"new-name-right", "\xEE\xA4\x86"},
+    {"new-name-sharp-left", "\xEE\xA4\x9B"},
+    {"new-name-sharp-right", "\xEE\xA4\x9C"},
+    {"new-name-slight-left", "\xEE\xA4\x87"},
+    {"new-name-slight-right", "\xEE\xA4\x88"},
+    {"new-name-straight", "\xEE\xA4\x84"},
+    {"notification-left", "\xEE\xA4\x85"},
+    {"notification-right", "\xEE\xA4\x86"},
+    {"notification-sharp-left", "\xEE\xA4\x9B"},
+    {"notification-sharp-right", "\xEE\xA4\xA5"},
+    {"notification-slight-left", "\xEE\xA4\x87"},
+    {"notification-slight-right", "\xEE\xA4\x88"},
+    {"notification-straight", "\xEE\xA4\x84"},
+    {"off-ramp-left", "\xEE\xA4\x9D"},
+    {"off-ramp-right", "\xEE\xA4\x9E"},
+    {"off-ramp-slight-left", "\xEE\xA4\x9F"},
+    {"off-ramp-slight-right", "\xEE\xA4\xA0"},
+    {"on-ramp-left", "\xEE\xA4\x85"},
+    {"on-ramp-right", "\xEE\xA4\x86"},
+    {"on-ramp-sharp-left", "\xEE\xA4\x9B"},
+    {"on-ramp-sharp-right", "\xEE\xA4\xA5"},
+    {"on-ramp-slight-left", "\xEE\xA4\x87"},
+    {"on-ramp-slight-right", "\xEE\xA4\x88"},
+    {"on-ramp-straight", "\xEE\xA4\x84"},
+    {"rotary", "\xEE\xA4\xA1"},
+    {"rotary-left", "\xEE\xA4\xA2"},
+    {"rotary-right", "\xEE\xA4\xA3"},
+    {"rotary-sharp-left", "\xEE\xA4\xA4"},
+    {"rotary-sharp-right", "\xEE\xA4\xA5"},
+    {"rotary-slight-left", "\xEE\xA4\xA6"},
+    {"rotary-slight-right", "\xEE\xA4\xA7"},
+    {"rotary-straight", "\xEE\xA4\xA8"},
+    {"roundabout", "\xEE\xA4\xA1"},
+    {"roundabout-left", "\xEE\xA4\xA2"},
+    {"roundabout-right", "\xEE\xA4\xA3"},
+    {"roundabout-sharp-left", "\xEE\xA4\xA4"},
+    {"roundabout-sharp-right", "\xEE\xA4\xA5"},
+    {"roundabout-slight-left", "\xEE\xA4\xA6"},
+    {"roundabout-slight-right", "\xEE\xA4\xA7"},
+    {"roundabout-straight", "\xEE\xA4\xA8"},
+    {"turn-left", "\xEE\xA4\x85"},
+    {"turn-right", "\xEE\xA4\x86"},
+    {"turn-sharp-left", "\xEE\xA4\x9B"},
+    {"turn-sharp-right", "\xEE\xA4\xA5"},
+    {"turn-slight-left", "\xEE\xA4\x87"},
+    {"turn-slight-right", "\xEE\xA4\x88"},
+    {"turn-straight", "\xEE\xA4\x84"},
+    {"updown", "\xEE\xA4\xA9"},
+    {"uturn", "\xEE\xA4\x89"},
+  }};
+
+  const char* iconForName(const std::string& icon) {
+    for (auto iter : m_iconMap) {
+      if (iter.first == icon) {
+        return iter.second;
+      }
+    }
+    return "\xEE\xA4\x90";
+  }
 }
 
 /**
  * Navigation watchapp
  *
  */
-Navigation::Navigation(Pinetime::Applications::DisplayApp *app, Pinetime::Controllers::NavigationService &nav) : Screen(app), navService(nav) {
+Navigation::Navigation(Pinetime::Applications::DisplayApp* app, Pinetime::Controllers::NavigationService& nav)
+  : Screen(app), navService(nav) {
 
-  constexpr uint8_t FONT_HEIGHT = 12;
-  constexpr uint8_t LINE_PAD = 15;
-  constexpr int8_t MIDDLE_OFFSET = -25;
-
-  imgFlag = lv_img_create(lv_scr_act(), nullptr);
-  lv_img_set_src_arr(imgFlag, &flag);
-  lv_obj_align(imgFlag, nullptr, LV_ALIGN_IN_TOP_MID, 0, 15);
+  imgFlag = lv_label_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_text_font(imgFlag, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &lv_font_navi_80);
+  lv_obj_set_style_local_text_color(imgFlag, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_CYAN);
+  lv_label_set_text(imgFlag, iconForName("flag"));
+  lv_obj_align(imgFlag, nullptr, LV_ALIGN_CENTER, 0, -60);
 
   txtNarrative = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_long_mode(txtNarrative, LV_LABEL_LONG_SROLL);
-  lv_obj_align(txtNarrative, nullptr, LV_ALIGN_IN_LEFT_MID, 12, MIDDLE_OFFSET + 1 * FONT_HEIGHT);
-  lv_label_set_text(txtNarrative, "Narrative");
-  lv_label_set_align(txtNarrative, LV_LABEL_ALIGN_CENTER);
-  lv_label_set_anim_speed(txtNarrative, 15);
+  lv_label_set_long_mode(txtNarrative, LV_LABEL_LONG_BREAK);
   lv_obj_set_width(txtNarrative, LV_HOR_RES);
+  lv_label_set_text(txtNarrative, "Navigation");
+  lv_label_set_align(txtNarrative, LV_LABEL_ALIGN_CENTER);
+  lv_obj_align(txtNarrative, nullptr, LV_ALIGN_CENTER, 0, 10);
 
   txtManDist = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_long_mode(txtManDist, LV_LABEL_LONG_SROLL);
-  lv_obj_align(txtManDist, nullptr, LV_ALIGN_IN_LEFT_MID, 12, MIDDLE_OFFSET + 2 * FONT_HEIGHT + LINE_PAD);
-  lv_label_set_text(txtManDist, "0M");
-  lv_label_set_align(txtManDist, LV_LABEL_ALIGN_CENTER);
+  lv_label_set_long_mode(txtManDist, LV_LABEL_LONG_BREAK);
+  lv_obj_set_style_local_text_color(txtManDist, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GREEN);
   lv_obj_set_width(txtManDist, LV_HOR_RES);
+  lv_label_set_text(txtManDist, "--M");
+  lv_label_set_align(txtManDist, LV_LABEL_ALIGN_CENTER);
+  lv_obj_align(txtManDist, nullptr, LV_ALIGN_CENTER, 0, 60);
 
-  //Route Progress
-  barProgress = lv_bar_create(lv_scr_act(), NULL);
+  // Route Progress
+  barProgress = lv_bar_create(lv_scr_act(), nullptr);
   lv_obj_set_size(barProgress, 200, 20);
-  lv_obj_align(barProgress, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
+  lv_obj_align(barProgress, nullptr, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
+  lv_obj_set_style_local_bg_color(barProgress, LV_BAR_PART_BG, LV_STATE_DEFAULT, lv_color_hex(0x222222));
+  lv_obj_set_style_local_bg_color(barProgress, LV_BAR_PART_INDIC, LV_STATE_DEFAULT, LV_COLOR_ORANGE);
   lv_bar_set_anim_time(barProgress, 500);
   lv_bar_set_range(barProgress, 0, 100);
-  lv_bar_set_value(barProgress, 0, LV_ANIM_ON);
+  lv_bar_set_value(barProgress, 0, LV_ANIM_OFF);
 }
 
 Navigation::~Navigation() {
@@ -79,42 +168,32 @@ Navigation::~Navigation() {
 }
 
 bool Navigation::Refresh() {
-
-  if (m_flag != navService.getFlag()) {
-    m_flag = navService.getFlag();
-
-    lv_img_set_src_arr(imgFlag, iconForName(m_flag));
+  if (flag != navService.getFlag()) {
+    flag = navService.getFlag();
+    lv_label_set_text(imgFlag, iconForName(flag));
   }
 
-  if (m_narrative != navService.getNarrative()) {
-    m_narrative = navService.getNarrative();
-    lv_label_set_text(txtNarrative, m_narrative.data());
+  if (narrative != navService.getNarrative()) {
+    narrative = navService.getNarrative();
+    lv_label_set_text(txtNarrative, narrative.data());
   }
 
-  if (m_manDist != navService.getManDist()) {
-    m_manDist = navService.getManDist();
-    lv_label_set_text(txtManDist, m_manDist.data());
+  if (manDist != navService.getManDist()) {
+    manDist = navService.getManDist();
+    lv_label_set_text(txtManDist, manDist.data());
   }
 
-  if (m_progress != navService.getProgress()) {
-    m_progress = navService.getProgress();
-    lv_bar_set_value(barProgress, m_progress, LV_ANIM_ON);
+  if (progress != navService.getProgress()) {
+    progress = navService.getProgress();
+    lv_bar_set_value(barProgress, progress, LV_ANIM_OFF);
+    if (progress > 90) {
+      lv_obj_set_style_local_bg_color(barProgress, LV_BAR_PART_INDIC, LV_STATE_DEFAULT, LV_COLOR_RED);
+    } else {
+      lv_obj_set_style_local_bg_color(barProgress, LV_BAR_PART_INDIC, LV_STATE_DEFAULT, LV_COLOR_ORANGE);
+    }
   }
 
   return running;
 }
 
-bool Navigation::OnButtonPushed() {
-  running = false;
-  return true;
-}
 
-const lv_img_dsc_t* Navigation::iconForName(std::string icon)
-{
-    for (auto iter : m_iconMap) {
-        if (iter.first == icon) {
-            return iter.second;
-        }
-    }
-    return &invalid;
-}

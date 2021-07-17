@@ -11,41 +11,35 @@ namespace Pinetime {
   namespace Applications {
     namespace Screens {
 
-      class Paddle : public Screen{
-        public:
-          Paddle(DisplayApp* app, Pinetime::Components::LittleVgl& lvgl);
-          ~Paddle() override;
+      class Paddle : public Screen {
+      public:
+        Paddle(DisplayApp* app, Pinetime::Components::LittleVgl& lvgl);
+        ~Paddle() override;
 
-          bool Refresh() override;
-          bool OnButtonPushed() override;
-          bool OnTouchEvent(TouchEvents event) override;
-          bool OnTouchEvent(uint16_t x, uint16_t y) override;
-          
-        private:  
-          Pinetime::Components::LittleVgl& lvgl;
-        
-          int paddleBottomY = 90;            // bottom extreme of the paddle
-          int paddleTopY = 150;		        //top extreme of the paddle
+        bool Refresh() override;
 
-          int ballX = 107;	            // Initial x_coordinate for the ball (12px offset from the center to counteract the ball's 24px size)
-          int ballY = 107;	            // Initial y_coordinate for the ball
+        bool OnTouchEvent(TouchEvents event) override;
+        bool OnTouchEvent(uint16_t x, uint16_t y) override;
 
-          int dx = 2;		            // Velocity of the ball in the x_coordinate
-          int dy = 3;		            // Velocity of the ball in the y_coordinate
+      private:
+        Pinetime::Components::LittleVgl& lvgl;
 
-          int counter = 0;	            // init Frame refresh limit counter
-          int score = 0;   
+        const uint8_t ballSize = 16;
 
-          char scoreStr[10];
+        uint16_t paddlePos = 30; // Paddle center
 
-          lv_img_dsc_t paddle; 
-          lv_img_dsc_t ball;
+        int16_t ballX = (LV_HOR_RES - ballSize) / 2;
+        int16_t ballY = (LV_VER_RES - ballSize) / 2;
 
-          lv_obj_t* points;
-          lv_obj_t* paddle_image;		// pointer to paddle image
-          lv_obj_t* ball_image;		// pointer to ball image
+        int8_t dx = 2; // Velocity of the ball in the x_coordinate
+        int8_t dy = 3; // Velocity of the ball in the y_coordinate
 
-          bool running = true;
+        uint16_t score = 0;
+
+        lv_obj_t* points;
+        lv_obj_t* paddle;
+        lv_obj_t* ball;
+        lv_obj_t* background;
       };
     }
   }
